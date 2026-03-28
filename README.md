@@ -1,8 +1,11 @@
 # cellular-auto
-1D cellular automata (Wolfram rules). Zero dependencies.
+
+1D cellular automata (Wolfram rules) visualizer
+
 ## Usage
+
+```bash
+python3 cellular_auto.py --help
 ```
-python3 cellular_auto.py 30
-python3 cellular_auto.py 110 -w 120 -s 60
-python3 cellular_auto.py 90
-```
+
+Zero dependencies. Python 3.8+.
