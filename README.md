@@ -1,6 +1,6 @@
-# cellular-auto
+# cellular_auto
 
-1D cellular automata (Wolfram rules) visualizer
+Cellular automata — all 256 elementary rules, 2D totalistic
 
 ## Usage
 
@@ -8,4 +8,12 @@
 python3 cellular_auto.py --help
 ```
 
-Zero dependencies. Python 3.8+.
+## Features
+
+- Single file, zero dependencies
+- Python 3.8+ compatible
+- CLI interface
+
+## License
+
+MIT
