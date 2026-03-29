@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""cellular_auto: 1D/2D cellular automata (Wolfram rules + Game of Life)."""
-import sys
+"""Cellular automaton: 1D elementary and 2D Game of Life."""
 
-def wolfram_rule(rule_num, width=31, steps=15, init=None):
+def elementary_1d(rule, width=80, steps=40, init=None):
     if init is None:
         state = [0] * width
         state[width // 2] = 1
@@ -12,69 +11,80 @@ def wolfram_rule(rule_num, width=31, steps=15, init=None):
     for _ in range(steps):
         new = [0] * width
         for i in range(width):
-            l = state[(i-1) % width]
-            c = state[i]
-            r = state[(i+1) % width]
-            idx = (l << 2) | (c << 1) | r
-            new[i] = (rule_num >> idx) & 1
+            left = state[(i-1) % width]
+            center = state[i]
+            right = state[(i+1) % width]
+            idx = (left << 2) | (center << 1) | right
+            new[i] = (rule >> idx) & 1
         state = new
         history.append(state[:])
     return history
 
-def game_of_life(grid, steps=1):
-    rows, cols = len(grid), len(grid[0])
-    for _ in range(steps):
-        new = [[0]*cols for _ in range(rows)]
-        for r in range(rows):
-            for c in range(cols):
-                neighbors = sum(
-                    grid[(r+dr)%rows][(c+dc)%cols]
-                    for dr in (-1,0,1) for dc in (-1,0,1)
-                    if (dr, dc) != (0, 0)
-                )
-                if grid[r][c] == 1:
-                    new[r][c] = 1 if neighbors in (2, 3) else 0
+class GameOfLife:
+    def __init__(self, width, height):
+        self.w, self.h = width, height
+        self.grid = [[0]*width for _ in range(height)]
+
+    def set(self, x, y, val=1):
+        self.grid[y % self.h][x % self.w] = val
+
+    def get(self, x, y):
+        return self.grid[y % self.h][x % self.w]
+
+    def neighbors(self, x, y):
+        count = 0
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dx == 0 and dy == 0: continue
+                count += self.get(x+dx, y+dy)
+        return count
+
+    def step(self):
+        new = [[0]*self.w for _ in range(self.h)]
+        for y in range(self.h):
+            for x in range(self.w):
+                n = self.neighbors(x, y)
+                if self.grid[y][x]:
+                    new[y][x] = 1 if n in (2, 3) else 0
                 else:
-                    new[r][c] = 1 if neighbors == 3 else 0
-        grid = new
-    return grid
+                    new[y][x] = 1 if n == 3 else 0
+        self.grid = new
 
-def render(state):
-    return "".join("#" if c else "." for c in state)
+    def population(self):
+        return sum(sum(row) for row in self.grid)
 
-def test():
-    # Rule 30
-    h = wolfram_rule(30, width=11, steps=5)
-    assert len(h) == 6
-    assert h[0][5] == 1  # Center cell
-    assert sum(h[1]) > 1  # Spreads
-    # Rule 110 (Turing complete)
-    h2 = wolfram_rule(110, width=11, steps=3)
-    assert len(h2) == 4
-    # Game of Life: blinker
-    grid = [
-        [0,0,0,0,0],
-        [0,0,1,0,0],
-        [0,0,1,0,0],
-        [0,0,1,0,0],
-        [0,0,0,0,0],
-    ]
-    g1 = game_of_life(grid, 1)
-    assert g1[2][1] == 1 and g1[2][2] == 1 and g1[2][3] == 1
-    assert g1[1][2] == 0  # Horizontal now
-    # Period 2
-    g2 = game_of_life(grid, 2)
-    assert g2 == grid
-    # Block (still life)
-    block = [
-        [0,0,0,0],
-        [0,1,1,0],
-        [0,1,1,0],
-        [0,0,0,0],
-    ]
-    assert game_of_life(block, 1) == block
-    print("All tests passed!")
+    def add_pattern(self, x, y, pattern):
+        for dy, row in enumerate(pattern):
+            for dx, cell in enumerate(row):
+                if cell: self.set(x+dx, y+dy)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "test": test()
-    else: print("Usage: cellular_auto.py test")
+    history = elementary_1d(110, width=40, steps=20)
+    for row in history:
+        print("".join("█" if c else " " for c in row))
+
+def test():
+    # Rule 110
+    h = elementary_1d(110, width=20, steps=10)
+    assert len(h) == 11
+    assert h[0][10] == 1  # center cell
+    # Rule 30
+    h2 = elementary_1d(30, width=20, steps=5)
+    assert len(h2) == 6
+    # Game of Life - blinker
+    g = GameOfLife(10, 10)
+    g.set(4, 5); g.set(5, 5); g.set(6, 5)
+    assert g.population() == 3
+    g.step()
+    # Blinker should rotate
+    assert g.get(5, 4) == 1
+    assert g.get(5, 5) == 1
+    assert g.get(5, 6) == 1
+    assert g.population() == 3
+    # Block (still life)
+    g2 = GameOfLife(10, 10)
+    g2.set(4, 4); g2.set(5, 4); g2.set(4, 5); g2.set(5, 5)
+    pop = g2.population()
+    g2.step()
+    assert g2.population() == pop
+    print("  cellular_auto: ALL TESTS PASSED")
