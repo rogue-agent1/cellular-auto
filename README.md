@@ -1,6 +1,6 @@
-# cellular-auto
+# Cellular Automata
 
-Cellular automata - 1D elementary rules, 2D Game of Life, and Langton's Ant
+Cellular Automata — zero-dependency, single-file Python CLI.
 
 ## Usage
 
@@ -8,7 +8,6 @@ Cellular automata - 1D elementary rules, 2D Game of Life, and Langton's Ant
 python3 cellular_auto.py --help
 ```
 
-## Features
+## License
 
-- Zero dependencies (Python 3.8+ stdlib only)
-- Single file implementation
+MIT
