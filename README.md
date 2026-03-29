@@ -1,13 +1,9 @@
-# cellular-automata
+# cellular-automaton
 
-Cellular Automata Simulator. Zero-dependency, single-file Python CLI.
+1D cellular automaton (Wolfram rules). Zero-dependency, single-file Python CLI.
 
 ## Usage
 
 ```bash
 python3 cellular_auto.py --help
 ```
-
-## License
-
-MIT
