@@ -1,53 +1,46 @@
 #!/usr/bin/env python3
-"""Cellular automata: 1D elementary, Game of Life, Langton's Ant, wireworld."""
-import sys, random, time
+"""Cellular Automata - 1D and 2D (Game of Life) simulation."""
+import sys, time
 
-def elementary(rule=110, width=80, steps=40, init=None):
-    if init is None:
-        state = [0]*width; state[width//2] = 1
-    else: state = init
+def rule_1d(rule_num, width=80, steps=40):
+    rule = [(rule_num >> i) & 1 for i in range(8)]
+    state = [0] * width; state[width // 2] = 1
+    lines = []
     for _ in range(steps):
-        print("".join("█" if c else " " for c in state))
-        new = [0]*width
+        lines.append("".join("█" if c else " " for c in state))
+        new = [0] * width
         for i in range(width):
-            l = state[(i-1)%width]; c = state[i]; r = state[(i+1)%width]
-            idx = (l<<2)|(c<<1)|r
-            new[i] = (rule >> idx) & 1
+            l = state[(i-1) % width]; c = state[i]; r = state[(i+1) % width]
+            new[i] = rule[(l << 2) | (c << 1) | r]
         state = new
+    return lines
 
-def game_of_life(w=60, h=30, steps=50, density=0.3):
-    grid = [[1 if random.random() < density else 0 for _ in range(w)] for _ in range(h)]
-    for step in range(steps):
-        print(f"\033[H\033[J=== Game of Life (step {step}) ===")
-        for row in grid: print("".join("█" if c else " " for c in row))
-        new = [[0]*w for _ in range(h)]
-        for y in range(h):
-            for x in range(w):
-                n = sum(grid[(y+dy)%h][(x+dx)%w] for dy in (-1,0,1) for dx in (-1,0,1)) - grid[y][x]
-                if grid[y][x]: new[y][x] = 1 if n in (2,3) else 0
-                else: new[y][x] = 1 if n == 3 else 0
-        grid = new; time.sleep(0.1)
-
-def langton_ant(w=60, h=30, steps=500):
-    grid = [[0]*w for _ in range(h)]; x, y, d = w//2, h//2, 0
-    dirs = [(0,-1),(1,0),(0,1),(-1,0)]
+def game_of_life(grid, steps=10):
+    rows, cols = len(grid), len(grid[0]); frames = []
     for _ in range(steps):
-        if grid[y][x] == 0: d = (d+1)%4; grid[y][x] = 1
-        else: d = (d-1)%4; grid[y][x] = 0
-        x = (x+dirs[d][0])%w; y = (y+dirs[d][1])%h
-    for row in grid: print("".join("█" if c else "·" for c in row))
+        frames.append(["".join("█" if c else "·" for c in row) for row in grid])
+        new = [[0]*cols for _ in range(rows)]
+        for r in range(rows):
+            for c in range(cols):
+                n = sum(grid[(r+dr)%rows][(c+dc)%cols] for dr in (-1,0,1) for dc in (-1,0,1) if (dr,dc) != (0,0))
+                new[r][c] = 1 if (grid[r][c] and n in (2,3)) or (not grid[r][c] and n == 3) else 0
+        grid = new
+    return frames
 
 def main():
-    import argparse
-    p = argparse.ArgumentParser(description="Cellular automata")
-    p.add_argument("type", nargs="?", default="elementary", choices=["elementary","life","ant"])
-    p.add_argument("-r", "--rule", type=int, default=110)
-    p.add_argument("-s", "--steps", type=int, default=40)
-    args = p.parse_args()
-    random.seed(42)
-    if args.type == "elementary":
-        print(f"Rule {args.rule}:"); elementary(args.rule, steps=args.steps)
-    elif args.type == "life": game_of_life(steps=args.steps)
-    elif args.type == "ant": langton_ant(steps=args.steps*10)
+    print("=== Cellular Automata ===\n")
+    print("Rule 30 (1D):")
+    for line in rule_1d(30, 60, 15): print(f"  {line}")
+    print("\nGame of Life (glider):")
+    grid = [[0]*20 for _ in range(15)]
+    grid[1][2]=1; grid[2][3]=1; grid[3][1]=grid[3][2]=grid[3][3]=1
+    frames = game_of_life(grid, 5)
+    for i, frame in enumerate(frames):
+        print(f"  Step {i}:")
+        for row in frame: print(f"    {row}")
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    rule = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    if rule is not None:
+        for line in rule_1d(rule): print(line)
+    else: main()

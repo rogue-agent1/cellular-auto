@@ -1,6 +1,6 @@
-# Cellular Automata
+# cellular-automata
 
-Cellular Automata — zero-dependency, single-file Python CLI.
+Cellular Automata Simulator. Zero-dependency, single-file Python CLI.
 
 ## Usage
 
