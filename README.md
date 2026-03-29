@@ -1,11 +1,11 @@
 # cellular_auto
 
-cellular_auto - 1D/2D cellular automata: elementary rules, Game of Life.
+cellular_auto: 1D/2D cellular automata (Wolfram rules + Game of Life).
 
-Zero-dependency, single-file Python CLI.
+Single-file, zero-dependency Python CLI.
 
 ## Usage
 
 ```bash
-python3 cellular_auto.py
+python3 cellular_auto.py test
 ```
