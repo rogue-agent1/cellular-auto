@@ -1,29 +1,65 @@
-import argparse
+#!/usr/bin/env python3
+"""cellular_auto - 1D/2D cellular automata: elementary rules, Game of Life."""
+import sys, json
 
-def step(cells, rule):
-    n = len(cells)
-    new = [0] * n
-    for i in range(n):
-        l = cells[(i-1) % n]
-        c = cells[i]
-        r = cells[(i+1) % n]
-        idx = (l << 2) | (c << 1) | r
-        new[i] = (rule >> idx) & 1
-    return new
+def elementary_ca(rule, width=61, steps=30, init=None):
+    if init is None:
+        row = [0]*width; row[width//2] = 1
+    else:
+        row = list(init)
+    result = [list(row)]
+    for _ in range(steps):
+        new_row = [0]*width
+        for i in range(width):
+            l = row[(i-1)%width]; c = row[i]; r = row[(i+1)%width]
+            idx = (l<<2)|(c<<1)|r
+            new_row[i] = (rule >> idx) & 1
+        row = new_row; result.append(list(row))
+    return result
+
+def game_of_life(grid, steps=5):
+    rows, cols = len(grid), len(grid[0])
+    history = [grid]
+    for _ in range(steps):
+        new = [[0]*cols for _ in range(rows)]
+        for r in range(rows):
+            for c in range(cols):
+                neighbors = sum(grid[(r+dr)%rows][(c+dc)%cols]
+                    for dr in [-1,0,1] for dc in [-1,0,1] if (dr,dc) != (0,0))
+                if grid[r][c]:
+                    new[r][c] = 1 if neighbors in (2,3) else 0
+                else:
+                    new[r][c] = 1 if neighbors == 3 else 0
+        grid = new; history.append(grid)
+    return history
+
+def render_1d(grid):
+    for row in grid:
+        print("".join("█" if c else " " for c in row))
+
+def count_alive(grid):
+    return sum(sum(row) for row in grid)
 
 def main():
-    p = argparse.ArgumentParser(description="1D cellular automaton")
-    p.add_argument("-r", "--rule", type=int, default=30)
-    p.add_argument("-w", "--width", type=int, default=79)
-    p.add_argument("-g", "--generations", type=int, default=40)
-    p.add_argument("--alive", default="█")
-    p.add_argument("--dead", default=" ")
-    args = p.parse_args()
-    cells = [0] * args.width
-    cells[args.width // 2] = 1
-    for _ in range(args.generations):
-        print("".join(args.alive if c else args.dead for c in cells))
-        cells = step(cells, args.rule)
+    print("Cellular automata demo\n")
+    # Rule 30
+    ca30 = elementary_ca(30, width=41, steps=20)
+    print(f"Rule 30 ({len(ca30)} generations, width {len(ca30[0])}):")
+    for row in ca30[:10]:
+        print("  " + "".join("█" if c else "·" for c in row))
+    # Rule 110 (Turing complete)
+    ca110 = elementary_ca(110, width=41, steps=20)
+    print(f"\nRule 110 (Turing complete):")
+    for row in ca110[:5]:
+        print("  " + "".join("█" if c else "·" for c in row))
+    # Game of Life - glider
+    grid = [[0]*10 for _ in range(10)]
+    grid[1][2]=1; grid[2][3]=1; grid[3][1]=1; grid[3][2]=1; grid[3][3]=1
+    history = game_of_life(grid, steps=4)
+    print(f"\nGame of Life (glider):")
+    for i, g in enumerate(history):
+        alive = count_alive(g)
+        print(f"  Step {i}: {alive} alive")
 
 if __name__ == "__main__":
     main()
