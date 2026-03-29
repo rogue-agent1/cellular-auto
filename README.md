@@ -1,11 +1,9 @@
-# cellular-auto
+# Cellular Automata (1D/2D)
 
-1D cellular automaton (Wolfram rules).
-
-Zero dependencies. Python 3.8+.
+Cellular Automata (1D/2D) — zero-dependency Python implementation.
 
 ## Usage
 
 ```bash
-python3 cellular_auto.py --help
+python3 cellular_auto.py
 ```
